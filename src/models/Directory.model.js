@@ -7,8 +7,12 @@ const directorySchema = new Schema(
       { type: Schema.Types.ObjectId, required: false, ref: "directory" },
     ],
     files: [{ type: String, required: false }],
-    path: { type: String, required: true },
-    parent: { type: String, required: false, default: null },
+    path: { type: String, required: false },
+    parent: {
+      type: Schema.Types.ObjectId || null,
+      required: false,
+      ref: "directory",
+    },
     user: { type: Schema.Types.ObjectId, required: true },
   },
   { timestamps: true, versionKey: false }

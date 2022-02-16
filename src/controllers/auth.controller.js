@@ -15,8 +15,9 @@ const signup = async (req, res) => {
 
     user = await User.create(req.body);
     const root_directory_id = await createDir(user);
-    if (!root_directory_id)
-      return res.status(500).json({ error: true, message: "Try again😣" });
+    // if (!root_directory_id) {
+    //   return res.status(500).json({ error: true, message: "Try again😣" });
+    // }
     const token = newToken(user);
     res.status(201).json({
       error: false,
@@ -54,12 +55,12 @@ const login = async (req, res) => {
 module.exports = { login, signup };
 
 async function createDir(user) {
-  console.log(user);
   try {
     const directory = await Directory.create({
       directory_name: "root",
       user: user._id,
       path: "/root",
+      parent: "620d67bb59431a70ee6e46cd",
     });
     return directory.id;
   } catch (err) {

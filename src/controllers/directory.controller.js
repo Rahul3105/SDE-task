@@ -5,7 +5,6 @@ router.get("/:id", async (req, res) => {
   try {
     // check if that directory owner is the same that we have got in req body
     const directory = await Directory.findById(req.params.id);
-    console.log(directory.user.toString() === req.body.user_id);
     if (directory.user.toString() !== req.body.user_id)
       return res.status(401).send("you can't view this directory sorry😓");
     // if yes just return the directory 😁
@@ -15,12 +14,23 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/directory", async (req, res) => {
   try {
+    // get the directory
+    const parentDirectory = await Directory.findById(req.body.parent);
     //create a repo
-    const directory = await Directory();
-    // return it
-  } catch (err) {}
+    const childDirectory = await Directory.create({
+      ...req.body,
+      directory_name: `${parentDirectory.directory_name}/${req.body.directory_name}`,
+    });
+    // push it into it's forign key in it's parent folder arr
+    parentDirectory.sub_directories.push(childDirectory.id);
+    parentDirectory.save();
+    // return the updated parent
+    return res.send(parentDirectory);
+  } catch (err) {
+    return res.status(500).send(err.message);
+  }
 });
 
 module.exports = router;
