@@ -9,9 +9,10 @@ const directorySchema = new Schema(
     files: [{ type: String, required: false }],
     path: { type: String, required: false },
     parent: {
-      type: Schema.Types.ObjectId || null,
+      type: Schema.Types.ObjectId,
       required: false,
       ref: "directory",
+      default: null,
     },
     user: { type: Schema.Types.ObjectId, required: true },
   },
