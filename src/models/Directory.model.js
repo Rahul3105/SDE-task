@@ -6,7 +6,7 @@ const directorySchema = new Schema(
     sub_directories: [
       { type: Schema.Types.ObjectId, required: false, ref: "directory" },
     ],
-    files: [{ type: String, required: false }],
+    files: [{ type: Schema.Types.ObjectId, required: false, ref: "file" }],
     path: { type: String, required: false },
     parent: {
       type: Schema.Types.ObjectId,
