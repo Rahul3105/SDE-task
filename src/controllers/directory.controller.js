@@ -5,6 +5,30 @@ const Authentication = require("../middlewares/Authentication");
 const { uploadSingle } = require("../middlewares/fileUploads");
 const File = require("../models/File.model");
 const fs = require("fs");
+const path = require("path");
+let fileType = {
+  media: ["mp4", "mkv"],
+  archives: ["zip", "7z", "rar", "tar", "gz", "ar", "iso", "xz"],
+  documents: [
+    "docx",
+    "doc",
+    "pdf",
+    "xlsx",
+    "xls",
+    "odt",
+    "ods",
+    "odp",
+    "odg",
+    "odf",
+    "txt",
+    "ps",
+    "tex",
+    "js",
+    "json",
+  ],
+  images: ["png", "jpg", "gif"],
+  app: ["exe", "dmg", "pkg", "deb"],
+};
 /// for getting a directory
 router.get("/:id", Authentication, async (req, res) => {
   try {
@@ -146,5 +170,175 @@ router.delete("/file/:id", async (req, res) => {
     return res.status(500).send({ error: err.message });
   }
 });
+
+//// for renaming a folder
+
+router.patch("/directory/:id", async (req, res) => {
+  try {
+    /// get the directory and update
+    const directory = await Directory.findByIdAndUpdate(
+      req.params.id,
+      req.body
+    );
+    // send it's parent
+    const parentDirectory = await Directory.findById(directory.parent).populate(
+      [
+        {
+          path: "sub_directories",
+          select: { directory_name: 1 },
+        },
+        {
+          path: "files",
+        },
+      ]
+    );
+    return res.status(200).send(parentDirectory);
+  } catch (err) {
+    return res.status(500).send(err.message);
+  }
+});
+
+/// for renaming a file
+
+router.patch("/file/:id", async (req, res) => {
+  try {
+    /// get the file and update
+    let { parent, ...others } = req.body;
+    const file = await File.findByIdAndUpdate(req.params.id, others);
+    // send it's parent
+
+    const parentDirectory = await Directory.findById(parent).populate([
+      {
+        path: "sub_directories",
+        select: { directory_name: 1 },
+      },
+      {
+        path: "files",
+      },
+    ]);
+    return res.status(200).send(parentDirectory);
+  } catch (err) {
+    return res.status(500).send(err.message);
+  }
+});
+
+// for moving one directory to another
+
+router.patch("/directory/move/:id", async (req, res) => {
+  try {
+    let { newParentID, prevParentID } = req.body;
+    //  get the new parent directory
+    let newParent = await Directory.findById(newParentID);
+    //  get the directory and change parent of directory with new parent
+    let directory = await Directory.findByIdAndUpdate(req.params.id, {
+      parent: newParent.id,
+    });
+    //  push this directory id into new parent directory
+    newParent.sub_directories.push(req.params.id);
+    await newParent.populate([
+      {
+        path: "sub_directories",
+        select: { directory_name: 1 },
+      },
+      {
+        path: "files",
+      },
+    ]);
+    // remove directory from it's previous parent
+    let prevParent = await Directory.findByIdAndUpdate(
+      prevParentID,
+      {
+        $pull: { sub_directories: req.params.id },
+      },
+      { new: true }
+    );
+    //  return the new updated parent
+    newParent.save();
+    return res.status(200).send(newParent);
+  } catch (err) {
+    return res.status(500).send(err.message);
+  }
+});
+
+/// for moving one file to another
+
+router.patch("/file/move/:id", async (req, res) => {
+  try {
+    let { newParentID, prevParentID } = req.body;
+    //  get the new parent directory
+    let newParent = await Directory.findById(newParentID);
+    //  push this file id into new parent directory
+    newParent.files.push(req.params.id);
+    await newParent.populate([
+      {
+        path: "sub_directories",
+        select: { directory_name: 1 },
+      },
+      {
+        path: "files",
+      },
+    ]);
+    // remove file from it's previous parent
+    let prevParent = await Directory.findByIdAndUpdate(prevParentID, {
+      $pull: { files: req.params.id },
+    });
+    //  return the new updated parent
+    newParent.save();
+    return res.status(200).send(newParent);
+  } catch (err) {
+    return res.status(500).send(err.message);
+  }
+});
+
+/// organising a directory❤👌😎
+
+router.patch("/directory/organize/:id", async (req, res) => {
+  /// get the directory
+  let directory = await Directory.findById(req.params.id).populate([
+    {
+      path: "sub_directories",
+      select: { directory_name: 1 },
+    },
+    {
+      path: "files",
+    },
+  ]);
+  let map = new Map();
+  // create folders for every extension name and push every file id that match the extension into it
+  for (let file of directory.files) {
+    let dirName = findCat(file.file_name);
+    if (map.has(dirName)) {
+      let doc = map.get(dirName);
+      doc.files.push(file.id);
+    } else {
+      let newDir = await Directory.create({
+        directory_name: dirName,
+        path: `${directory.path}/${dirName}`,
+        files: [file.id],
+        parent: directory,
+        user: directory.user,
+      });
+      map.set(dirName, newDir);
+    }
+  }
+  for (let [key, value] of map) {
+    directory.sub_directories.push(value.id);
+  }
+  // remove all files from the parent
+  directory.files = [];
+  directory.save();
+  // return the updated parent
+  return res.send(directory);
+});
+
+function findCat(fileName) {
+  let ext = path.extname(fileName).slice(1);
+  for (let type in fileType) {
+    if (fileType[type].includes(ext)) {
+      return type;
+    }
+  }
+  return "others";
+}
 
 module.exports = router;
