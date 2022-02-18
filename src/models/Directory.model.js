@@ -4,7 +4,11 @@ const directorySchema = new Schema(
   {
     directory_name: { type: String, required: true },
     sub_directories: [
-      { type: Schema.Types.ObjectId, required: false, ref: "directory" },
+      {
+        type: Schema.Types.ObjectId,
+        required: false,
+        ref: "directory",
+      },
     ],
     files: [{ type: Schema.Types.ObjectId, required: false, ref: "file" }],
     path: { type: String, required: false },

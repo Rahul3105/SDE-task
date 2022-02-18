@@ -26,7 +26,7 @@ let fileType = {
     "js",
     "json",
   ],
-  images: ["png", "jpg", "gif"],
+  images: ["png", "jpg", "gif", "PNG"],
   app: ["exe", "dmg", "pkg", "deb"],
 };
 /// for getting a directory
@@ -297,19 +297,27 @@ router.patch("/directory/organize/:id", async (req, res) => {
   let directory = await Directory.findById(req.params.id).populate([
     {
       path: "sub_directories",
-      select: { directory_name: 1 },
+      select: { directory_name: 1, files: 1 },
     },
     {
       path: "files",
     },
   ]);
   let map = new Map();
+  // if there already exist file type folder than store it before creating
+  for (let dir of directory.sub_directories) {
+    if (fileType[dir.directory_name]) {
+      map.set(dir.directory_name, dir);
+    }
+  }
   // create folders for every extension name and push every file id that match the extension into it
   for (let file of directory.files) {
     let dirName = findCat(file.file_name);
     if (map.has(dirName)) {
       let doc = map.get(dirName);
       doc.files.push(file.id);
+      // console.log(doc);
+      doc.save();
     } else {
       let newDir = await Directory.create({
         directory_name: dirName,
@@ -318,11 +326,9 @@ router.patch("/directory/organize/:id", async (req, res) => {
         parent: directory,
         user: directory.user,
       });
+      directory.sub_directories.push(newDir.id);
       map.set(dirName, newDir);
     }
-  }
-  for (let [key, value] of map) {
-    directory.sub_directories.push(value.id);
   }
   // remove all files from the parent
   directory.files = [];
