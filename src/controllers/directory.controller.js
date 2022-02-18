@@ -4,7 +4,7 @@ const Directory = require("../models/Directory.model");
 const Authentication = require("../middlewares/Authentication");
 const { uploadSingle } = require("../middlewares/fileUploads");
 const File = require("../models/File.model");
-
+const fs = require("fs");
 /// for getting a directory
 router.get("/:id", Authentication, async (req, res) => {
   try {
@@ -103,7 +103,15 @@ router.delete("/directory/:id", async (req, res) => {
       directory.parent,
       { $pull: { sub_directories: req.params.id } },
       { new: true }
-    );
+    ).populate([
+      {
+        path: "sub_directories",
+        select: { directory_name: 1 },
+      },
+      {
+        path: "files",
+      },
+    ]);
     // deleting from the data base also
     await Directory.findByIdAndDelete(req.params.id);
     return res.status(201).send(parentDirectory);
@@ -115,23 +123,24 @@ router.delete("/directory/:id", async (req, res) => {
 // for deleting a file
 router.delete("/file/:id", async (req, res) => {
   try {
-    // get the directory
-    const directory = await Directory.findById(req.params.id);
-    // check if it is empty or not
-    if (directory.files.length > 0 || directory.sub_directories.length > 0) {
-      // if not than just send the response saying can't delete directory
-      return res
-        .status(500)
-        .send({ error: true, message: "Directory is not empty" });
-    }
-    // delete the directory and send it's parent directory as response
+    // get the file and delete
+    const file = await File.findByIdAndDelete(req.params.id);
+    // unlink using fs module
+    if (file.file_url) fs.unlinkSync(file.file_url);
+    // remove from the parent directory also
     const parentDirectory = await Directory.findByIdAndUpdate(
-      directory.parent,
-      { $pull: { sub_directories: req.params.id } },
+      req.body.parent,
+      { $pull: { files: req.params.id } },
       { new: true }
-    );
-    // deleting from the data base also
-    await Directory.findByIdAndDelete(req.params.id);
+    ).populate([
+      {
+        path: "sub_directories",
+        select: { directory_name: 1 },
+      },
+      {
+        path: "files",
+      },
+    ]);
     return res.status(201).send(parentDirectory);
   } catch (err) {
     return res.status(500).send({ error: err.message });
