@@ -8,10 +8,10 @@ const cors = require("cors");
 
 app.use(cors());
 app.use(express.json());
-app.use("/my-directory", directoryController);
-app.use("/user", userController);
-app.post("/signup", signup);
-app.post("/login", login);
+app.use("/api/my-directory", directoryController);
+app.use("/api/users", userController);
+app.post("/api/signup", signup);
+app.post("/api/login", login);
 app.listen(1234, async () => {
   try {
     await connectWithDB();
