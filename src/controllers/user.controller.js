@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const Authentication = require("../middlewares/Authentication");
+const Authentication = require("../middlewares/authentication");
 router.get("/", Authentication, async (req, res) => {
   try {
     let { password, ...others } = req.user;
