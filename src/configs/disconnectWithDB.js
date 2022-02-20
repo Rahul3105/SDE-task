@@ -1,2 +1,5 @@
 const mongoose = require("mongoose");
-module.exports = () => mongoose.disconnect("mongodb://127.0.0.1:27017/SDE");
+module.exports = () =>
+  mongoose.disconnect(
+    "mongodb+srv://rahul3105:abcd3105@sde-task.rxiec.mongodb.net/myFirstDatabase"
+  );

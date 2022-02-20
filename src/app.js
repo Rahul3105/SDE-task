@@ -11,5 +11,8 @@ app.use("/api/my-directory", directoryController);
 app.use("/api/users", userController);
 app.post("/api/signup", signup);
 app.post("/api/login", login);
+app.get("/", async (req, res) => {
+  res.send("everything is set");
+});
 
 module.exports = app;
