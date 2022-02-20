@@ -7,6 +7,7 @@ const verifyToken = (token) => {
     });
   });
 };
+/// testing
 module.exports = async (req, res, next) => {
   //is authentication key avail in header?
   if (!req?.headers?.authentication) {
