@@ -76,7 +76,7 @@ router.patch(
       let payload = {
         file_name: req.file_name,
         extension: req.extension,
-        file_url: req.file?.path,
+        file_url: req.file ? req.file.path : null,
         user: parentDirectory.user,
       };
       const file = await File.create(payload);
