@@ -101,6 +101,12 @@ router.delete(
     try {
       // get the directory
       const directory = req.directory;
+      // check if it is root directory or not
+      if (directory.path === "/root") {
+        return res
+          .status(405)
+          .send({ error: true, message: "Can't delete root directory" });
+      }
       // check if it is empty or not
       if (directory.files.length > 0 || directory.sub_directories.length > 0) {
         // if not than just send the response saying can't delete directory
@@ -116,7 +122,7 @@ router.delete(
       ).populate(populateSubDirAndFile);
       // deleting from the data base also
       await Directory.findByIdAndDelete(req.params.id);
-      return res.status(201).send({ error: false, directory: parentDirectory });
+      return res.status(200).send({ error: false, directory: parentDirectory });
     } catch (err) {
       return res.status(500).send({ error: true, message: err.message });
     }
@@ -140,7 +146,7 @@ router.delete(
         { $pull: { files: req.params.id } },
         { new: true }
       ).populate(populateSubDirAndFile);
-      return res.status(201).send({ error: false, directory: parentDirectory });
+      return res.status(200).send({ error: false, directory: parentDirectory });
     } catch (err) {
       return res.status(500).send({ error: true, message: err.message });
     }
@@ -163,7 +169,7 @@ router.patch(
       const parentDirectory = await Directory.findById(
         directory.parent
       ).populate(populateSubDirAndFile);
-      return res.status(201).send({ error: false, directory: parentDirectory });
+      return res.status(200).send({ error: false, directory: parentDirectory });
     } catch (err) {
       return res.status(500).send({ error: true, message: err.message });
     }
@@ -185,7 +191,7 @@ router.patch(
       const parentDirectory = await Directory.findById(parent).populate(
         populateSubDirAndFile
       );
-      return res.status(201).send({ error: false, directory: parentDirectory });
+      return res.status(200).send({ error: false, directory: parentDirectory });
     } catch (err) {
       return res.status(500).send({ error: true, message: err.message });
     }

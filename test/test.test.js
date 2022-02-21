@@ -3,7 +3,7 @@ const connectWithDB = require("../src/configs/connectWithDB");
 const disconnectWithDB = require("../src/configs/disconnectWithDB");
 const clearDB = require("../src/configs/clearDB");
 const app = require("../src/app");
-let idOfRoot, token;
+let idOfRoot, token, idOfNewDir;
 describe("testing the whole flow", () => {
   beforeAll(async () => {
     await connectWithDB();
@@ -39,7 +39,14 @@ describe("testing the whole flow", () => {
       expect(res.body.message).toBe("user already exist");
     });
   });
-
+  // describe("POST /login", () => {
+  //   test("should give the token back", async () => {
+  //     let res = await request(app).post("/api/login").send({
+  //       email: "test@gmail.com",
+  //       password: "12345",
+  //     });
+  //   });
+  // });
   describe("GET /users", () => {
     test("should give the user as response because passing token", async () => {
       let res = await request(app)
@@ -84,6 +91,7 @@ describe("testing the whole flow", () => {
       expect(res.body.directory.sub_directories[0].directory_name).toBe(
         "new directory"
       );
+      idOfNewDir = res.body.directory.sub_directories[0]._id;
     });
     test("should not create a directory because token is invalid", async () => {
       let res = await request(app)
@@ -96,14 +104,39 @@ describe("testing the whole flow", () => {
     });
   });
   // creating a new file
-  describe("PATCH /my-directory/file/:id", () => {
-    test("should create a new file", async () => {
+  // describe("PATCH /my-directory/file/:id", () => {
+  //   test("should create a new file", async () => {
+  //     let res = await request(app)
+  //       .patch(`/api/my-directory/file/create/${idOfRoot}`)
+  //       .set("authentication", `bearer ${token}`)
+  //       .attach("file", "/text.txt");
+  //     expect(res.statusCode).toBe(201);
+  //   });
+  // });
+  describe("PATCH  /my-directory/directory/rename/:id", () => {
+    test("should rename the directory", async () => {
       let res = await request(app)
-        .patch(`/api/my-directory/file/create/${idOfRoot}`)
+        .patch(`/api/my-directory/directory/rename/${idOfNewDir}`)
         .set("authentication", `bearer ${token}`)
-        .attach("file", "/text.txt");
-      console.log(res);
-      expect(res.statusCode).toBe(201);
+        .send({
+          directory_name: "new name",
+        });
+      expect(res.statusCode).toBe(200);
+    });
+  });
+  describe("DELETE /my-directory/directory/:id", () => {
+    test("should delete a directory", async () => {
+      let res = await request(app)
+        .delete(`/api/my-directory/directory/${idOfNewDir}`)
+        .set("authentication", `bearer ${token}`);
+      expect(res.statusCode).toBe(200);
+    });
+    test("should not delete a root directory", async () => {
+      let res = await request(app)
+        .delete(`/api/my-directory/directory/${idOfRoot}`)
+        .set("authentication", `bearer ${token}`);
+      expect(res.statusCode).toBe(405);
+      expect(res.body.message).toBe("Can't delete root directory");
     });
   });
 });
