@@ -209,10 +209,16 @@ router.patch(
       let { newParentID, prevParentID } = req.body;
       //  get the new parent directory
       let newParent = await Directory.findById(newParentID);
+      // if we're pasting in same directory
+      if (newParentID === prevParentID) {
+        return res.send(200).send({ error: false, directory: newParent });
+      }
       //  get the directory and change parent of directory with new parent
       let directory = await Directory.findByIdAndUpdate(req.params.id, {
         parent: newParent.id,
+        path: newParent.path + req.directory.directory_name,
       });
+
       //  push this directory id into new parent directory
       newParent.sub_directories.push(req.params.id);
       await newParent.populate(populateSubDirAndFile);
@@ -222,7 +228,7 @@ router.patch(
       });
       //  return the new updated parent
       newParent.save();
-      return res.status(201).send({ error: false, directory: newParent });
+      return res.status(200).send({ error: false, directory: newParent });
     } catch (err) {
       return res.status(500).send({ error: true, message: err.message });
     }
