@@ -237,3 +237,22 @@ As name suggest, it is file management system just like google drive.
 | :-------- | :------- | :-------------------------------- |
 | `token` | `string` | **Required**. token |
 
+
+## Important Technical Decisions (ITD)
+
+
+| ITD 1 | MongoDB will be used to store data| 
+| :-------- | :------- | 
+| Reason | Change-friendly design and Flexible document schemas| 
+
+
+| ITD 2 | Express js will be used to structure application| 
+| :-------- | :------- |  
+| Reason | Since i'm very familiar with Javascript, this was the best option| 
+
+
+
+
+| ITD 2 | jest and supertest framework  will be used to testing the application| 
+| :-------- | :------- |  
+| Reason | Jest and supertest are very famous framework, hence have multiple docs and developers support | 
