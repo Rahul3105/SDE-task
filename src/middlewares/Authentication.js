@@ -33,7 +33,7 @@ module.exports = async (req, res, next) => {
   } catch (err) {
     return res.status(401).send({
       error: true,
-      message: "Please provide a valid authorization token",
+      message: "Please provide a valid token",
     });
   }
   // attach  the user to the request
