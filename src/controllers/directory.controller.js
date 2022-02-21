@@ -210,7 +210,7 @@ router.patch(
       //  get the new parent directory
       let newParent = await Directory.findById(newParentID);
       // if we're pasting in same directory
-      if (newParentID === prevParentID) {
+      if (JSON.stringify(newParentID) === JSON.stringify(prevParentID)) {
         return res.send(200).send({ error: false, directory: newParent });
       }
       //  get the directory and change parent of directory with new parent
