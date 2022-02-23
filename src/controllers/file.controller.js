@@ -4,18 +4,11 @@ const authentication = require("../middlewares/authentication");
 const { uploadSingle } = require("../middlewares/fileUploads");
 const File = require("../models/File.model");
 const fs = require("fs");
+const path = require("path");
 
 const validateUser = require("../middlewares/validateUser");
 
-const populateSubDirAndFile = [
-  {
-    path: "sub_directories",
-    select: { directory_name: 1 },
-  },
-  {
-    path: "files",
-  },
-];
+const populateSubDirAndFile = require("../utils/populateSubDirAndFile");
 
 /// for creating a new file inside a particular directory
 
@@ -42,6 +35,7 @@ router.patch(
       parentDirectory.save();
       return res.status(201).send({ error: false, directory: parentDirectory });
     } catch (err) {
+      console.log(err.message);
       return res.status(500).send({ error: true, message: err.message });
     }
   }

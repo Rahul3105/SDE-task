@@ -1,18 +1,10 @@
 const router = require("express").Router();
 const Directory = require("../models/Directory.model");
 const authentication = require("../middlewares/authentication");
-
 const { findCat, fileType } = require("../utils/findCat");
 const validateUser = require("../middlewares/validateUser");
-const populateSubDirAndFile = [
-  {
-    path: "sub_directories",
-    select: { directory_name: 1 },
-  },
-  {
-    path: "files",
-  },
-];
+const createDeepCopy = require("../utils/createDeepCopy");
+const populateSubDirAndFile = require("../utils/populateSubDirAndFile");
 /// for getting a directory
 router.get(
   "/:id",
@@ -105,11 +97,9 @@ router.patch(
   async (req, res) => {
     try {
       /// get the directory and update
-      const directory = await Directory.findByIdAndUpdate(
-        req.params.id,
-        req.body
-      );
-      // send it's parent
+      const directory = req.directory;
+      await directory.updateOne(req.body);
+      // getting its parent
       const parentDirectory = await Directory.findById(
         directory.parent
       ).populate(populateSubDirAndFile);
@@ -138,11 +128,11 @@ router.patch(
         return res.status(200).send({ error: false, directory: newParent });
       }
       //  get the directory and change parent of directory with new parent
-      let directory = await Directory.findByIdAndUpdate(req.params.id, {
+      let directory = req.directory;
+      await directory.updateOne({
         parent: newParent.id,
-        path: newParent.path + req.directory.directory_name,
+        path: newParent.path + "/" + req.directory.directory_name,
       });
-
       //  push this directory id into new parent directory
       newParent.sub_directories.push(req.params.id);
       await newParent.populate(populateSubDirAndFile);
@@ -168,7 +158,8 @@ router.patch(
   async (req, res) => {
     try {
       /// get the directory
-      let directory = await Directory.findById(req.params.id).populate([
+      let directory = req.directory;
+      await directory.populate([
         {
           path: "sub_directories",
           select: { directory_name: 1, files: 1 },
@@ -219,4 +210,34 @@ router.patch(
     }
   }
 );
+
+// for copy one directory to another (The deep copy using recursion)
+
+router.patch(
+  "/copy/:id",
+  authentication,
+  validateUser(Directory),
+  async (req, res) => {
+    try {
+      let { newParentID } = req.body;
+      //  get the new parent directory
+      let newParent = await Directory.findById(newParentID).populate(
+        populateSubDirAndFile
+      );
+      // create a deep copy of the directory 👌
+      let deepCopy = await createDeepCopy(req.directory, newParent);
+
+      //  push this deep copy directory id into new parent directory
+      newParent.sub_directories.push(deepCopy.id);
+      await newParent.populate(populateSubDirAndFile);
+      //  return the new updated parent
+      newParent.save();
+      return res.status(200).send({ error: false, directory: newParent });
+    } catch (err) {
+      console.log(err.message);
+      return res.status(500).send({ error: true, message: err.message });
+    }
+  }
+);
+
 module.exports = router;
