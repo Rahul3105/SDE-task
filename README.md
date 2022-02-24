@@ -420,20 +420,6 @@ JWT_SECRET_KEY
 
 
 ## Important Technical Decisions (ITD)
-
-
-| ITD 1 | MongoDB will be used to store data| 
-| :-------- | :------- | 
-| Reason | Change-friendly design and Flexible document schemas| 
-
-
-| ITD 2 | Express js will be used to structure application| 
-| :-------- | :------- |  
-| Reason | Since i'm very familiar with Javascript, this was the best option| 
-
-
-
-
-| ITD 2 | jest and supertest framework  will be used to testing the application| 
-| :-------- | :------- |  
-| Reason | Jest and supertest are very famous framework, hence have multiple docs and developers support | 
+```
+https://docs.google.com/document/d/15OErep8IoQTxl8esbW1cfVcAJoJPUpv9dlMS_Jgp2Lo/edit?usp=sharing
+```
