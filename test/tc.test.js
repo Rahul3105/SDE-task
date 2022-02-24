@@ -10,6 +10,7 @@ const getDirectory = require("./requestFunc/getDirectory");
 const createDirectory = require("./requestFunc/createDirectory");
 const createFile = require("./requestFunc/createFile");
 const deleteFile = require("./requestFunc/deleteFile");
+const copyFile = require("./requestFunc/copyFile");
 let idOfRoot, token, idOfNewDir;
 describe("testing the whole flow", () => {
   beforeAll(async () => {
@@ -85,7 +86,7 @@ describe("testing the whole flow", () => {
       expect(res.body.message).toBe("Please provide a valid token");
     });
   });
-  // getting a directory
+
   describe("GET /my-directory/directory/:id", () => {
     test("should give the directory as response", async () => {
       let res = await getDirectory(idOfRoot, token);
@@ -251,7 +252,6 @@ describe("testing the whole flow", () => {
   describe("PATCH /my-directory/file/rename/:id", () => {
     test("Should rename a file", async () => {
       let res = await createFile(idOfRoot, token, "text.txt");
-      console.log(res.body);
       let fileId = top(res.body.directory.files)._id;
       let res1 = await request(app)
         .patch(`/api/my-directory/file/rename/${fileId}`)
@@ -282,6 +282,21 @@ describe("testing the whole flow", () => {
           newParentID: idOfRoot,
         })
         .set("authentication", `bearer ${token}`);
+      expect(res.statusCode).toBe(200);
+    });
+  });
+
+  /// copy file
+  describe("PATCH /my-directory/file/copy/:id", () => {
+    test("Should copy the file", async () => {
+      // create a file
+      let res = await createFile(idOfRoot, token, "text.txt");
+      let fileId = top(res.body.directory.files)._id;
+      /// create a folder
+      res = await createDirectory(idOfRoot, token, "test dir");
+      let newParentId = top(res.body.directory.sub_directories)._id;
+      // copy that file into that folder
+      res = await copyFile(fileId, token, newParentId);
       expect(res.statusCode).toBe(200);
     });
   });

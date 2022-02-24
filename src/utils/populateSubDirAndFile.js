@@ -5,5 +5,6 @@ module.exports = [
   },
   {
     path: "files",
+    select: { file_name: 1, file_url: 1, extension: 1 },
   },
 ];
