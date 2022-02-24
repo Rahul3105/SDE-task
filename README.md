@@ -9,7 +9,7 @@ As name suggest, it is file management system just like google drive.
 ```
 https://nifty-bartik-bd1bb8.netlify.app/
 ```
-###### Note:- this frontend if just for testing the API's, created this in very hurry, so please don't judge my frontend skills😓
+###### Note:- this frontend is just for testing the API's, created this in very hurry, so please don't judge my frontend skills😓
 
 ## Features
 
