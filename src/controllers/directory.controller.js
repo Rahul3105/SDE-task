@@ -17,6 +17,7 @@ router.get(
       directory.save();
       res.status(200).send({ error: false, directory });
     } catch (err) {
+      console.log("get directory", err.message);
       return res.status(500).send({ error: true, message: err.message });
     }
   }
@@ -46,6 +47,7 @@ router.patch(
       // return the updated parent
       return res.status(201).send({ error: false, directory: parentDirectory });
     } catch (err) {
+      console.log("create directory", err.message);
       return res.status(500).send({ error: true, message: err.message });
     }
   }
@@ -84,6 +86,7 @@ router.delete(
       await Directory.findByIdAndDelete(req.params.id);
       return res.status(200).send({ error: false, directory: parentDirectory });
     } catch (err) {
+      console.log("delete directory", err.message);
       return res.status(500).send({ error: true, message: err.message });
     }
   }
@@ -105,6 +108,7 @@ router.patch(
       ).populate(populateSubDirAndFile);
       return res.status(200).send({ error: false, directory: parentDirectory });
     } catch (err) {
+      console.log("rename directory", err.message);
       return res.status(500).send({ error: true, message: err.message });
     }
   }
@@ -144,6 +148,7 @@ router.patch(
       newParent.save();
       return res.status(200).send({ error: false, directory: newParent });
     } catch (err) {
+      console.log("move directory", err.message);
       return res.status(500).send({ error: true, message: err.message });
     }
   }
@@ -205,7 +210,7 @@ router.patch(
       // return the updated parent
       return res.status(201).send({ error: false, directory });
     } catch (err) {
-      console.log(err.message);
+      console.log("organize", err.message);
       res.status(500).send({ error: true, message: err.message });
     }
   }
@@ -226,7 +231,6 @@ router.patch(
       );
       // create a deep copy of the directory 👌
       let deepCopy = await createDeepCopy(req.directory, newParent);
-
       //  push this deep copy directory id into new parent directory
       newParent.sub_directories.push(deepCopy.id);
       await newParent.populate(populateSubDirAndFile);
@@ -234,7 +238,7 @@ router.patch(
       newParent.save();
       return res.status(200).send({ error: false, directory: newParent });
     } catch (err) {
-      console.log(err.message);
+      console.log("copy", err.message);
       return res.status(500).send({ error: true, message: err.message });
     }
   }

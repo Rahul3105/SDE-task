@@ -1,8 +1,9 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User.model");
 const Directory = require("../models/Directory.model");
+require("dotenv").config();
 const newToken = (user) => {
-  return jwt.sign({ user }, "rahul");
+  return jwt.sign({ user }, process.env.JWT_SECRET_KEY);
 };
 
 const signup = async (req, res) => {
@@ -31,6 +32,7 @@ const signup = async (req, res) => {
       message: "Account created successfully😋",
     });
   } catch (err) {
+    console.log("signup of auth controller", err.message);
     res.status(500).json({ error: true, message: err.message });
   }
 };
@@ -52,6 +54,7 @@ const login = async (req, res) => {
       .status(200)
       .json({ error: false, message: "login successfully😋", token });
   } catch (err) {
+    console.log("loginOfAuthController", err.message);
     res.status(500).json({ error: true, message: err.message });
   }
 };
@@ -68,6 +71,7 @@ async function createDir(user) {
     });
     return directory.id;
   } catch (err) {
+    console.log("createDirOfAuthController", err.message);
     return err.message;
   }
 }
