@@ -131,6 +131,7 @@ router.patch(
       // push copy into new parent
       let newParent = await Directory.findById(newParentID);
       newParent.files.push(copyOfFile);
+      await newParent.populate(populateSubDirAndFile);
       newParent.save();
       // return new parent
       return res.status(200).send({ error: false, directory: newParent });
